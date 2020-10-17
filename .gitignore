@@ -2,3 +2,4 @@
 *.cmd
 *.code-workspace
 .vscode/
+__pycache__/
