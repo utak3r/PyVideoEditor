@@ -92,7 +92,7 @@ class VideoEditorMainWindow(QMainWindow):
 
         self.settings = Settings("utak3r", "PyVideoEditor")
         self.settings.readSettings()
-        #print("LastDir = " + self.settings.getLastDir())
+        self.setGeometry(self.settings.getMainWndGeometry())
 
     def initUI(self, filename):
         loader = QUiLoader()
@@ -102,6 +102,7 @@ class VideoEditorMainWindow(QMainWindow):
         file.close()
 
     def closeEvent(self, event):
+        self.settings.setMainWndGeometry(self.geometry())
         self.settings.writeSettings()
         event.accept()
 
@@ -161,7 +162,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     mainWnd = VideoEditorMainWindow()
-    mainWnd.resize(800, 600)
     mainWnd.show()
 
     sys.exit(app.exec_())
