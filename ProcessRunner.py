@@ -4,6 +4,7 @@ from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QCoreApplication, Slot, QFile, QIODevice
 
 class ProcessRunner(QDialog):
+    """ Running a shell command with stdout and stderr output in a text window. """
     def __init__(self):
         QDialog.__init__(self)
         self.init_ui("ProcessRunner.ui")
@@ -13,6 +14,7 @@ class ProcessRunner(QDialog):
         self.Form.btnCancel.clicked.connect(self.terminate)
 
     def init_ui(self, filename):
+        """ Init UI from a given ui file. """
         loader = QUiLoader()
         file = QFile(filename)
         file.open(QIODevice.ReadOnly)
@@ -20,12 +22,14 @@ class ProcessRunner(QDialog):
         file.close()
 
     def run_command(self, command):
+        """ Run a given command asynchronously. """
         self.show()
         self.add_log(command)
         QCoreApplication.processEvents()
         asyncio.run(self.run(command))
 
     async def read_stream(self, stream):
+        """ Read line by line from a given stream. """
         while self.process.returncode is None:
             try:
                 line = await stream.readline()
@@ -40,6 +44,7 @@ class ProcessRunner(QDialog):
                 break
 
     async def run(self, command):
+        """ Create a subprocess and let read_stream method to read its output. Change the dialog's buttons states. """
         self.Form.btnOk.setEnabled(False)
         try:
             self.process = await asyncio.create_subprocess_shell(command, stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
@@ -52,10 +57,12 @@ class ProcessRunner(QDialog):
 
     @Slot()
     def terminate(self):
+        """ Terminate the subprocess. """
         if self.process is not None:
             self.process.terminate()
         self.reject()
 
     @Slot()
     def add_log(self, text):
+        """ Add a line of text to an output window. """
         self.Form.logText.appendPlainText(text)
