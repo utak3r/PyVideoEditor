@@ -1,13 +1,11 @@
 import sys
-from PySide2.QtWidgets import (QApplication, QLabel, QPushButton,
-                               QVBoxLayout, QWidget, QMessageBox,
-                               QFileDialog, QMainWindow, QDialog)
-from PySide2.QtCore import (QCoreApplication, Qt, Slot, QUrl, QFile, QIODevice, QFileInfo)
+from PySide2.QtWidgets import QApplication, QVBoxLayout, QFileDialog, QMainWindow
+from PySide2.QtCore import QCoreApplication, Qt, Slot, QUrl, QFile, QIODevice, QFileInfo
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtMultimedia import (QMediaPlayer, QMediaPlaylist)
+from PySide2.QtMultimedia import QMediaPlayer
 from PySide2.QtMultimediaWidgets import QVideoWidget
-from Settings import Settings
-from ProcessRunner import ProcessRunner
+from settings_tools import Settings
+from process_tools import ProcessRunner
 
 
 class VideoEditorMainWindow(QMainWindow):

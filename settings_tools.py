@@ -1,4 +1,4 @@
-from PySide2.QtCore import QSettings, QSize, QPoint, QRect
+from PySide2.QtCore import QSettings, QRect
 
 class Settings():
     def __init__(self, org, appName):
