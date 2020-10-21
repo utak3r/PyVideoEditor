@@ -1,6 +1,4 @@
 import sys
-import subprocess
-import asyncio
 from PySide2.QtWidgets import (QApplication, QLabel, QPushButton,
                                QVBoxLayout, QWidget, QMessageBox,
                                QFileDialog, QMainWindow, QDialog)
@@ -9,70 +7,16 @@ from PySide2.QtUiTools import QUiLoader
 from PySide2.QtMultimedia import (QMediaPlayer, QMediaPlaylist)
 from PySide2.QtMultimediaWidgets import QVideoWidget
 from Settings import Settings
-
-
-class ProcessLogView(QDialog):
-    def __init__(self):
-        QDialog.__init__(self)
-        self.initUI("ProcessLogView.ui")
-
-        self.process = None
-        self.Form.btnOk.clicked.connect(self.accept)
-        self.Form.btnCancel.clicked.connect(self.terminate)
-
-    def initUI(self, filename):
-        loader = QUiLoader()
-        file = QFile(filename)
-        file.open(QIODevice.ReadOnly)
-        self.Form = loader.load(file, self)
-        file.close()
-
-    def runCommand(self, command):
-        self.show()
-        self.addLog(command)
-        QCoreApplication.processEvents()
-        asyncio.run(self.run(command))
-
-    async def readStream(self, stream):
-        while self.process.returncode is None:
-            try:
-                line = await stream.readline()
-            except (asyncio.LimitOverrunError, ValueError):
-                continue
-            if line:
-                line = line.decode("utf-8")[:-1]
-                print(line)
-                self.addLog(line)
-                QCoreApplication.processEvents()
-            else:
-                break
-
-    async def run(self, command):
-        self.Form.btnOk.setEnabled(False)
-        self.process = await asyncio.create_subprocess_shell(command, stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-        self.Form.btnCancel.setEnabled(True)
-        await asyncio.wait([self.readStream(self.process.stdout), self.readStream(self.process.stderr)])
-        self.Form.btnCancel.setEnabled(False)
-        self.Form.btnOk.setEnabled(True)
-
-
-    @Slot()
-    def terminate(self):
-        if self.process is not None:
-            self.process.terminate()
-        self.reject()
-
-    @Slot()
-    def addLog(self, text):
-        self.Form.logText.appendPlainText(text)
+from ProcessRunner import ProcessRunner
 
 
 class VideoEditorMainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
-        self.initUI("PyVideoEditorMainWindow.ui")
+        self.init_ui("PyVideoEditorMainWindow.ui")
+        self.runner = None
 
-        self.videoSourceFile = ''
+        self.video_source_file = ''
         videoWidget = QVideoWidget()
         videoplayerlayout = QVBoxLayout()
         videoplayerlayout.addWidget(videoWidget)
@@ -80,21 +24,21 @@ class VideoEditorMainWindow(QMainWindow):
 
         self.player = QMediaPlayer()
         self.player.setVideoOutput(videoWidget)
-        self.player.durationChanged.connect(self.videoDurationChanged)
-        self.player.positionChanged.connect(self.videoPositionChanged)
+        self.player.durationChanged.connect(self.video_duration_changed)
+        self.player.positionChanged.connect(self.video_position_changed)
 
-        self.centralWidget().videoSlider.valueChanged.connect(self.videoSeekSliderMoved)
-        self.centralWidget().btnPlayPause.clicked.connect(self.playPauseClicked)
-        self.centralWidget().btnLoadVideo.clicked.connect(self.openVideo)
+        self.centralWidget().videoSlider.valueChanged.connect(self.video_seek_slider_moved)
+        self.centralWidget().btnPlayPause.clicked.connect(self.play_pause_clicked)
+        self.centralWidget().btnLoadVideo.clicked.connect(self.open_video)
 
-        self.fillTargetFormats()
-        self.centralWidget().btnConvert.clicked.connect(self.convertButtonClicked)
+        self.fill_convert_target_formats()
+        self.centralWidget().btnConvert.clicked.connect(self.convert_button_clicked)
 
         self.settings = Settings("utak3r", "PyVideoEditor")
-        self.settings.readSettings()
-        self.setGeometry(self.settings.getMainWndGeometry())
+        self.settings.read_settings()
+        self.setGeometry(self.settings.main_wnd_geometry())
 
-    def initUI(self, filename):
+    def init_ui(self, filename):
         loader = QUiLoader()
         file = QFile(filename)
         file.open(QIODevice.ReadOnly)
@@ -102,59 +46,59 @@ class VideoEditorMainWindow(QMainWindow):
         file.close()
 
     def closeEvent(self, event):
-        self.settings.setMainWndGeometry(self.geometry())
-        self.settings.writeSettings()
+        self.settings.set_main_wnd_geometry(self.geometry())
+        self.settings.write_settings()
         event.accept()
 
     @Slot()
-    def openVideo(self):
-        filename = QFileDialog.getOpenFileName(self, "Open video", self.settings.getLastDir(), "Video files (*.avi *.mp4)")
+    def open_video(self):
+        filename = QFileDialog.getOpenFileName(self, "Open video", self.settings.last_dir(), "Video files (*.avi *.mp4)")
         if filename[0] != "":
-            self.videoSourceFile = filename[0]
-            self.player.setMedia(QUrl.fromUserInput(self.videoSourceFile))
-            print('Opening video: ' + self.videoSourceFile)
-            self.settings.setLastDir(QFileInfo(self.videoSourceFile).absolutePath())
+            self.video_source_file = filename[0]
+            self.player.setMedia(QUrl.fromUserInput(self.video_source_file))
+            print('Opening video: ' + self.video_source_file)
+            self.settings.set_last_dir(QFileInfo(self.video_source_file).absolutePath())
             self.player.play()
 
     @Slot()
-    def videoDurationChanged(self, duration):
+    def video_duration_changed(self, duration):
         print('Video duration: ' + repr(duration))
         self.centralWidget().videoSlider.setRange(0, duration)
         self.centralWidget().videoSlider.setSingleStep(duration/500)
         self.centralWidget().videoSlider.setPageStep(duration/2000)
 
     @Slot()
-    def videoPositionChanged(self, position):
+    def video_position_changed(self, position):
         if not self.centralWidget().videoSlider.isSliderDown():
             self.centralWidget().videoSlider.setValue(position)
 
     @Slot()
-    def videoSeekSliderMoved(self, value):
+    def video_seek_slider_moved(self, value):
         self.player.setPosition(value)
 
     @Slot()
-    def playPauseClicked(self):
+    def play_pause_clicked(self):
         if self.player.state() == QMediaPlayer.PlayingState:
             self.player.pause()
         else:
             self.player.play()
 
-    def fillTargetFormats(self):
+    def fill_convert_target_formats(self):
         self.centralWidget().cbxTargetFormat.clear()
         self.centralWidget().cbxTargetFormat.addItem('H.264 AAC', ('H.264 AAC', '.mp4', '-c:v libx264 -preset medium -tune film -c:a aac'))
         self.centralWidget().cbxTargetFormat.addItem('DNxHD 185Mbps PCM s24LE', ('DNxHD 185Mbps PCM s24LE', '.mov', '-c:v dnxhd -b:v 185M -c:a pcm_s24le'))
         self.centralWidget().cbxTargetFormat.addItem('ProRes YUV422', ('ProRes YUV422', '.mov', '-c:v prores_ks -profile:v 3 -vendor ap10 -pix_fmt yuv422p10le'))
 
     @Slot()
-    def convertButtonClicked(self):
+    def convert_button_clicked(self):
+        ffmpeg = self.settings.ffmpeg()
         ffmpeg = "c:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe"
         codec = self.centralWidget().cbxTargetFormat.currentData()
-        params = '-i ' + '"' + self.videoSourceFile + '" ' + codec[2] + ' "' + self.videoSourceFile + '.converted' + codec[1] + '"'
+        params = '-i ' + '"' + self.video_source_file + '" ' + codec[2] + ' "' + self.video_source_file + '.converted' + codec[1] + '"'
         command = '"' + ffmpeg + '" ' + params
 
-        self.logView = ProcessLogView()
-        #self.logView.show()
-        self.logView.runCommand(command)
+        self.runner = ProcessRunner()
+        self.runner.run_command(command)
 
 
 if __name__ == "__main__":
