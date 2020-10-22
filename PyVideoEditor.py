@@ -1,4 +1,5 @@
 import sys
+import math
 from PySide2.QtWidgets import QApplication, QVBoxLayout, QFileDialog, QMainWindow
 from PySide2.QtCore import QCoreApplication, Qt, Slot, QUrl, QFile, QIODevice, QFileInfo
 from PySide2.QtUiTools import QUiLoader
@@ -6,6 +7,7 @@ from PySide2.QtMultimedia import QMediaPlayer
 from PySide2.QtMultimediaWidgets import QVideoWidget
 from settings_tools import Settings, SettingsDialog
 from process_tools import ProcessRunner
+from video_tools import TimelineMarks
 
 
 class VideoEditorMainWindow(QMainWindow):
@@ -14,6 +16,7 @@ class VideoEditorMainWindow(QMainWindow):
         self.init_ui("PyVideoEditorMainWindow.ui")
         self.runner = None
         self.settings_dlg = None
+        self.timeline_marks = TimelineMarks()
 
         self.video_source_file = ''
         videoWidget = QVideoWidget()
@@ -29,6 +32,9 @@ class VideoEditorMainWindow(QMainWindow):
         self.centralWidget().videoSlider.valueChanged.connect(self.video_seek_slider_moved)
         self.centralWidget().btnPlayPause.clicked.connect(self.play_pause_clicked)
         self.centralWidget().btnLoadVideo.clicked.connect(self.open_video)
+        self.centralWidget().btnSetMarkIn.clicked.connect(self.set_mark_in)
+        self.centralWidget().btnSetMarkOut.clicked.connect(self.set_mark_out)
+        self.centralWidget().btnResetMarks.clicked.connect(self.clear_inout_marks)
 
         self.fill_convert_target_formats()
         self.centralWidget().btnConvert.clicked.connect(self.convert_button_clicked)
@@ -92,13 +98,16 @@ class VideoEditorMainWindow(QMainWindow):
     @Slot()
     def convert_button_clicked(self):
         ffmpeg = self.settings.ffmpeg()
-        #ffmpeg = "c:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe"
-        codec = self.centralWidget().cbxTargetFormat.currentData()
-        params = '-i ' + '"' + self.video_source_file + '" ' + codec[2] + ' "' + self.video_source_file + '.converted' + codec[1] + '"'
-        command = '"' + ffmpeg + '" ' + params
-
-        self.runner = ProcessRunner()
-        self.runner.run_command(command)
+        if ffmpeg != "":
+            codec = self.centralWidget().cbxTargetFormat.currentData()
+            if self.video_source_file != "" and codec[2] != "" and codec[1] != "":
+                duration_params = ""
+                if self.timeline_marks.duration() > 0:
+                    duration_params = ' -ss ' + self.timeline_marks.timecode_start() + ' -t ' + '{} '.format(math.floor(self.timeline_marks.duration() / 1000))
+                params = '-i ' + '"' + self.video_source_file + '" ' + duration_params + codec[2] + ' "' + self.video_source_file + '.converted' + codec[1] + '"'
+                command = '"' + ffmpeg + '" ' + params
+                self.runner = ProcessRunner()
+                self.runner.run_command(command)
 
     @Slot()
     def open_settings(self):
@@ -111,6 +120,28 @@ class VideoEditorMainWindow(QMainWindow):
     def settings_closed(self):
         """ Called when settings dialog is closed. """
         self.settings.write_settings()
+
+    @Slot()
+    def set_mark_in(self):
+        """ Set Mark In for the current timecode. """
+        timecode = self.player.position()
+        if timecode >= 0:
+            self.timeline_marks.mark_in = timecode
+            print("Mark in: " + self.timeline_marks.timecode_start())
+    
+    @Slot()
+    def set_mark_out(self):
+        """ Set Mark Out for the current timecode. """
+        timecode = self.player.position()
+        if timecode >= 0:
+            self.timeline_marks.mark_out = timecode
+            print("Mark out: " + self.timeline_marks.timecode_end())
+    
+    @Slot()
+    def clear_inout_marks(self):
+        """ Clear any in/out marks. """
+        self.timeline_marks.reset()
+
 
 if __name__ == "__main__":
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
