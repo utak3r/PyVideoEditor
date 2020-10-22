@@ -4,7 +4,7 @@ from PySide2.QtCore import QCoreApplication, Qt, Slot, QUrl, QFile, QIODevice, Q
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtMultimedia import QMediaPlayer
 from PySide2.QtMultimediaWidgets import QVideoWidget
-from settings_tools import Settings
+from settings_tools import Settings, SettingsDialog
 from process_tools import ProcessRunner
 
 
@@ -13,6 +13,7 @@ class VideoEditorMainWindow(QMainWindow):
         QMainWindow.__init__(self)
         self.init_ui("PyVideoEditorMainWindow.ui")
         self.runner = None
+        self.settings_dlg = None
 
         self.video_source_file = ''
         videoWidget = QVideoWidget()
@@ -35,6 +36,7 @@ class VideoEditorMainWindow(QMainWindow):
         self.settings = Settings("utak3r", "PyVideoEditor")
         self.settings.read_settings()
         self.setGeometry(self.settings.main_wnd_geometry())
+        self.centralWidget().btnSettings.clicked.connect(self.open_settings)
 
     def init_ui(self, filename):
         loader = QUiLoader()
@@ -90,7 +92,7 @@ class VideoEditorMainWindow(QMainWindow):
     @Slot()
     def convert_button_clicked(self):
         ffmpeg = self.settings.ffmpeg()
-        ffmpeg = "c:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe"
+        #ffmpeg = "c:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe"
         codec = self.centralWidget().cbxTargetFormat.currentData()
         params = '-i ' + '"' + self.video_source_file + '" ' + codec[2] + ' "' + self.video_source_file + '.converted' + codec[1] + '"'
         command = '"' + ffmpeg + '" ' + params
@@ -98,6 +100,17 @@ class VideoEditorMainWindow(QMainWindow):
         self.runner = ProcessRunner()
         self.runner.run_command(command)
 
+    @Slot()
+    def open_settings(self):
+        """ Show settings dialog. """
+        self.settings_dlg = SettingsDialog(self.settings)
+        self.settings_dlg.finished.connect(self.settings_closed)
+        self.settings_dlg.open()
+    
+    @Slot()
+    def settings_closed(self):
+        """ Called when settings dialog is closed. """
+        self.settings.write_settings()
 
 if __name__ == "__main__":
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
