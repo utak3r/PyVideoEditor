@@ -10,7 +10,7 @@ class TimelineMarks():
         self.mark_out = -1
 
     def __repr__(self) -> str:
-        return self.timecode_start()
+        return self.timecode_start() + " - " + self.timecode_end()
 
     def duration(self):
         """ Duration between the marks. """
@@ -24,25 +24,26 @@ class TimelineMarks():
         self.mark_in = -1
         self.mark_out = -1
 
-    def timecode_start(self):
-        """ Returns mark in in a timecode format. """
+    def milliseconds_to_timecode(self, time):
+        """ Format given time in ms into a string. """
         timecode = ""
-        if self.mark_in > -1:
-            hours = math.floor(self.mark_in / 3600000)
-            minutes = math.floor(self.mark_in / 60000) - hours*60
-            seconds = math.floor(self.mark_in / 1000) - hours*3600 - minutes*60
-            milliseconds = self.mark_in - hours*3600000 - minutes*60000 - seconds*1000
+        if time > -1:
+            hours = math.floor(time / 3600000)
+            minutes = math.floor(time / 60000) - hours*60
+            seconds = math.floor(time / 1000) - hours*3600 - minutes*60
+            milliseconds = time - hours*3600000 - minutes*60000 - seconds*1000
             timecode = "{:0>2}:{:0>2}:{:0>2}.{:0>3}".format(hours, minutes, seconds, milliseconds)
         return timecode
+
+    def timecode_start(self):
+        """ Returns mark in in a timecode format. """
+        return self.milliseconds_to_timecode(self.mark_in)
             
     def timecode_end(self):
         """ Returns mark out in a timecode format. """
-        timecode = ""
-        if self.mark_out > -1:
-            hours = math.floor(self.mark_out / 3600000)
-            minutes = math.floor(self.mark_out / 60000) - hours*60
-            seconds = math.floor(self.mark_out / 1000) - hours*3600 - minutes*60
-            milliseconds = self.mark_out - hours*3600000 - minutes*60000 - seconds*1000
-            timecode = "{:0>2}:{:0>2}:{:0>2}.{:0>3}".format(hours, minutes, seconds, milliseconds)
-        return timecode
+        return self.milliseconds_to_timecode(self.mark_out)
+
+    def duration_timecode(self):
+        """ Returns duration in a timecode formatted string. """
+        return self.milliseconds_to_timecode(self.duration())
 
