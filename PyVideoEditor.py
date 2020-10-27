@@ -1,7 +1,7 @@
 import sys
 import math
 from PySide2.QtWidgets import QApplication, QVBoxLayout, QFileDialog, QMainWindow
-from PySide2.QtCore import QCoreApplication, Qt, Slot, QUrl, QFile, QIODevice, QFileInfo
+from PySide2.QtCore import QCoreApplication, Qt, Slot, QUrl, QFile, QIODevice, QFileInfo, QTextStream
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtMultimedia import QMediaPlayer
 from PySide2.QtMultimediaWidgets import QVideoWidget
@@ -14,6 +14,7 @@ class VideoEditorMainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
         self.init_ui("PyVideoEditorMainWindow.ui")
+
         self.runner = None
         self.settings_dlg = None
         self.timeline_marks = TimelineMarks()
@@ -143,9 +144,23 @@ class VideoEditorMainWindow(QMainWindow):
         self.timeline_marks.reset()
 
 
+def set_style_sheet(application):
+    """ Set style for the application """
+    #application.setStyle("fusion")
+    style_sheet = ""
+    style_file = QFile("PyVideoEditor.qss")
+    style_file.open(QFile.ReadOnly)
+    style_file_in = QTextStream(style_file)
+    while not style_file_in.atEnd():
+        line = style_file_in.readLine()
+        style_sheet += line
+    application.setStyleSheet(style_sheet)
+
+
 if __name__ == "__main__":
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
+    set_style_sheet(app)
 
     mainWnd = VideoEditorMainWindow()
     mainWnd.show()
