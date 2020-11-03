@@ -31,7 +31,8 @@ class TimelineMarks():
         self.mark_out = -1
         self.video_duration = video_duration
 
-    def milliseconds_to_timecode(self, time):
+    @classmethod
+    def milliseconds_to_timecode(cls, time):
         """ Format given time in ms into a string. """
         timecode = ""
         if time > -1:
