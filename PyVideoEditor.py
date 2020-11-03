@@ -2,6 +2,7 @@ import sys
 import math
 from PySide2.QtWidgets import QApplication, QVBoxLayout, QFileDialog, QMainWindow
 from PySide2.QtCore import QCoreApplication, Qt, Slot, QUrl, QFile, QIODevice, QFileInfo
+from PySide2.QtGui import QIcon
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtMultimedia import QMediaPlayer
 from PySide2.QtMultimediaWidgets import QVideoWidget
@@ -151,6 +152,7 @@ class VideoEditorMainWindow(QMainWindow):
 if __name__ == "__main__":
     QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon('app.ico'))
 
     mainWnd = VideoEditorMainWindow()
     mainWnd.show()
