@@ -63,13 +63,13 @@ class VideoEditorMainWindow(QMainWindow):
         if filename[0] != "":
             self.video_source_file = filename[0]
             self.player.setMedia(QUrl.fromUserInput(self.video_source_file))
-            print('Opening video: ' + self.video_source_file)
+            #print('Opening video: ' + self.video_source_file)
             self.settings.set_last_dir(QFileInfo(self.video_source_file).absolutePath())
             self.player.play()
 
     @Slot()
     def video_duration_changed(self, duration):
-        print('Video duration: ' + repr(duration))
+        #print('Video duration: ' + repr(duration))
         self.centralWidget().videoSlider.setRange(0, duration)
         self.centralWidget().videoSlider.setSingleStep(duration/500)
         self.centralWidget().videoSlider.setPageStep(duration/2000)
@@ -129,7 +129,7 @@ class VideoEditorMainWindow(QMainWindow):
         timecode = self.player.position()
         if timecode >= 0:
             self.timeline_marks.mark_in = timecode
-            print("Mark in: " + self.timeline_marks.timecode_start())
+            #print("Mark in: " + self.timeline_marks.timecode_start())
             self.centralWidget().lblTimecodeRange.setText(self.timeline_marks.current_range())
     
     @Slot()
@@ -138,7 +138,7 @@ class VideoEditorMainWindow(QMainWindow):
         timecode = self.player.position()
         if timecode >= 0:
             self.timeline_marks.mark_out = timecode
-            print("Mark out: " + self.timeline_marks.timecode_end())
+            #print("Mark out: " + self.timeline_marks.timecode_end())
             self.centralWidget().lblTimecodeRange.setText(self.timeline_marks.current_range())
     
     @Slot()

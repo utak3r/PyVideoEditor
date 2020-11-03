@@ -37,7 +37,7 @@ class ProcessRunner(QDialog):
                 continue
             if line:
                 line = line.decode("utf-8")[:-1]
-                print(line)
+                #print(line)
                 self.add_log(line)
                 QCoreApplication.processEvents()
             else:

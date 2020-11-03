@@ -9,7 +9,7 @@ added_files = [
     ( 'ProcessRunner.ui', '.' )
 ]
 
-a = Analysis(['PyVideoEditor.py'],
+a = Analysis(['PyVideoEditor.pyw'],
              pathex=['D:\\devel\\sandbox\\PyVideoEditor'],
              binaries=[],
              datas=added_files,
@@ -25,14 +25,14 @@ pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          [('v', None, 'OPTION')],
+          [],
           exclude_binaries=True,
           name='PyVideoEditor',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True,
+          console=False,
           icon='app.ico')
 coll = COLLECT(exe,
                a.binaries,
