@@ -7,7 +7,7 @@ class ProcessRunner(QDialog):
     """ Running a shell command with stdout and stderr output in a text window. """
     def __init__(self):
         QDialog.__init__(self)
-        self.init_ui("ProcessRunner.ui")
+        self.init_ui("PyVideoEditor/ProcessRunner.ui")
 
         self.process = None
         self.Form.btnOk.clicked.connect(self.accept)

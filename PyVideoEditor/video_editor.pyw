@@ -6,15 +6,15 @@ from PySide2.QtGui import QIcon
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtMultimedia import QMediaPlayer
 from PySide2.QtMultimediaWidgets import QVideoWidget
-from settings_tools import Settings, SettingsDialog
-from process_tools import ProcessRunner
-from video_tools import TimelineMarks
+from PyVideoEditor.settings_tools import Settings, SettingsDialog
+from PyVideoEditor.process_tools import ProcessRunner
+from PyVideoEditor.video_tools import TimelineMarks
 
 
 class VideoEditorMainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
-        self.init_ui("PyVideoEditorMainWindow.ui")
+        self.init_ui("PyVideoEditor/PyVideoEditorMainWindow.ui")
         self.runner = None
         self.settings_dlg = None
         self.timeline_marks = TimelineMarks()
@@ -146,15 +146,3 @@ class VideoEditorMainWindow(QMainWindow):
         """ Clear any in/out marks. """
         self.timeline_marks.reset(self.player.duration())
         self.centralWidget().lblTimecodeRange.setText(self.timeline_marks.current_range())
-    
-
-
-if __name__ == "__main__":
-    QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
-    app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon('app.ico'))
-
-    mainWnd = VideoEditorMainWindow()
-    mainWnd.show()
-
-    sys.exit(app.exec_())
