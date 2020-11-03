@@ -4,12 +4,12 @@ block_cipher = None
 
 added_files = [
     ( 'app.ico', '.' ),
-	( 'PyVideoEditorMainWindow.ui', '.' ),
-    ( 'Settings.ui', '.' ),
-    ( 'ProcessRunner.ui', '.' )
+	( 'PyVideoEditor/PyVideoEditorMainWindow.ui', 'PyVideoEditor' ),
+    ( 'PyVideoEditor/Settings.ui', 'PyVideoEditor' ),
+    ( 'PyVideoEditor/ProcessRunner.ui', 'PyVideoEditor' )
 ]
 
-a = Analysis(['PyVideoEditor.pyw'],
+a = Analysis(['PyVideoEditor/__main__.py'],
              pathex=['D:\\devel\\sandbox\\PyVideoEditor'],
              binaries=[],
              datas=added_files,
