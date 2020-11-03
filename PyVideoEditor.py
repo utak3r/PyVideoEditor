@@ -72,6 +72,7 @@ class VideoEditorMainWindow(QMainWindow):
         self.centralWidget().videoSlider.setRange(0, duration)
         self.centralWidget().videoSlider.setSingleStep(duration/500)
         self.centralWidget().videoSlider.setPageStep(duration/2000)
+        self.clear_inout_marks()
 
     @Slot()
     def video_position_changed(self, position):
@@ -102,7 +103,7 @@ class VideoEditorMainWindow(QMainWindow):
             codec = self.centralWidget().cbxTargetFormat.currentData()
             if self.video_source_file != "" and codec[2] != "" and codec[1] != "":
                 duration_params = ""
-                if self.timeline_marks.duration() > 0:
+                if self.timeline_marks.is_trimmed():
                     duration_params = ' -ss ' + self.timeline_marks.timecode_start() + ' -t ' + '{} '.format(math.floor(self.timeline_marks.duration() / 1000))
                 params = '-i ' + '"' + self.video_source_file + '" ' + duration_params + codec[2] + ' "' + self.video_source_file + '.converted' + codec[1] + '"'
                 command = '"' + ffmpeg + '" ' + params
@@ -128,6 +129,7 @@ class VideoEditorMainWindow(QMainWindow):
         if timecode >= 0:
             self.timeline_marks.mark_in = timecode
             print("Mark in: " + self.timeline_marks.timecode_start())
+            self.centralWidget().lblTimecodeRange.setText(self.timeline_marks.current_range())
     
     @Slot()
     def set_mark_out(self):
@@ -136,11 +138,14 @@ class VideoEditorMainWindow(QMainWindow):
         if timecode >= 0:
             self.timeline_marks.mark_out = timecode
             print("Mark out: " + self.timeline_marks.timecode_end())
+            self.centralWidget().lblTimecodeRange.setText(self.timeline_marks.current_range())
     
     @Slot()
     def clear_inout_marks(self):
         """ Clear any in/out marks. """
-        self.timeline_marks.reset()
+        self.timeline_marks.reset(self.player.duration())
+        self.centralWidget().lblTimecodeRange.setText(self.timeline_marks.current_range())
+    
 
 
 if __name__ == "__main__":

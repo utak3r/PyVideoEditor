@@ -8,21 +8,28 @@ class TimelineMarks():
     def __init__(self):
         self.mark_in = -1
         self.mark_out = -1
+        self.video_duration = 0
 
     def __repr__(self) -> str:
-        return self.timecode_start() + " - " + self.timecode_end()
+        return self.current_range()
 
     def duration(self):
         """ Duration between the marks. """
         duration = 0
-        if self.mark_in > -1 and self.mark_out > -1:
-            duration = self.mark_out - self.mark_in
+        start = 0
+        end = self.video_duration
+        if self.mark_in > -1:
+            start = self.mark_in
+        if self.mark_out > -1:
+            end = self.mark_out
+        duration = end - start
         return duration
     
-    def reset(self):
-        """ Reset marks: set both values to default (-1). """
+    def reset(self, video_duration):
+        """ Reset marks. """
         self.mark_in = -1
         self.mark_out = -1
+        self.video_duration = video_duration
 
     def milliseconds_to_timecode(self, time):
         """ Format given time in ms into a string. """
@@ -36,14 +43,37 @@ class TimelineMarks():
         return timecode
 
     def timecode_start(self):
-        """ Returns mark in in a timecode format. """
-        return self.milliseconds_to_timecode(self.mark_in)
+        """ Returns beginning of range in a timecode format. """
+        start = 0
+        if self.mark_in > -1:
+            start = self.mark_in
+        return self.milliseconds_to_timecode(start)
             
     def timecode_end(self):
-        """ Returns mark out in a timecode format. """
-        return self.milliseconds_to_timecode(self.mark_out)
+        """ Returns end of range in a timecode format. """
+        end = self.video_duration
+        if self.mark_out > -1:
+            end = self.mark_out
+        return self.milliseconds_to_timecode(end)
 
     def duration_timecode(self):
         """ Returns duration in a timecode formatted string. """
         return self.milliseconds_to_timecode(self.duration())
+
+    def current_range(self):
+        """ Range in a text format.
+        From mark in to mark out, but if they're not set,
+        show full video duration.
+        """
+        video_range = "---"
+        if self.duration() > 0:
+            video_range = self.timecode_start() + " - " + self.timecode_end()
+        return video_range
+
+    def is_trimmed(self):
+        """ Checks if range is not a full video. """
+        trimmed = False
+        if self.mark_in > -1 or self.mark_out > -1:
+            trimmed = True
+        return trimmed
 
