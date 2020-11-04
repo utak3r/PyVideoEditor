@@ -69,7 +69,7 @@ class SettingsDialog(QDialog):
     """SettingsDialog class shows a dialog where user can set various settings for the app."""
     def __init__(self, settings):
         QDialog.__init__(self)
-        self.init_ui("Settings.ui")
+        self.init_ui("PyVideoEditor/Settings.ui")
         self.settings_ = settings
         self.Form.btnOk.clicked.connect(self.accept_settings)
         self.Form.btnFFmpegPath.clicked.connect(self.browse_for_ffmpeg_exec)
