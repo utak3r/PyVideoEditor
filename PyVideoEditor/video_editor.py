@@ -94,7 +94,8 @@ class VideoEditorMainWindow(QMainWindow):
     def fill_convert_target_formats(self):
         self.centralWidget().cbxTargetFormat.clear()
         for preset in self.settings.video_presets:
-            self.centralWidget().cbxTargetFormat.addItem(preset.name, preset.get_user_data())
+            if type(preset) is VideoPreset:
+                self.centralWidget().cbxTargetFormat.addItem(preset.name, preset.get_user_data())
 
     @Slot()
     def convert_button_clicked(self):

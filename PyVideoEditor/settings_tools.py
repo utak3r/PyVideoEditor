@@ -123,9 +123,10 @@ class SettingsDialog(QDialog):
             self.Form.presetsTable.setRowCount(len(presets))
             i = 0
             for video_preset in presets:
-                self.Form.presetsTable.setItem(i, 0, QTableWidgetItem(video_preset.name))
-                self.Form.presetsTable.setItem(i, 1, QTableWidgetItem(video_preset.extension))
-                self.Form.presetsTable.setItem(i, 2, QTableWidgetItem(video_preset.command_line))
+                if type(video_preset) is VideoPreset:
+                    self.Form.presetsTable.setItem(i, 0, QTableWidgetItem(video_preset.name))
+                    self.Form.presetsTable.setItem(i, 1, QTableWidgetItem(video_preset.extension))
+                    self.Form.presetsTable.setItem(i, 2, QTableWidgetItem(video_preset.command_line))
                 i += 1
             self.Form.presetsTable.cellChanged.connect(self.presets_cell_changed)
 
