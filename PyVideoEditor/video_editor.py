@@ -59,7 +59,7 @@ class VideoEditorMainWindow(QMainWindow):
 
     @Slot()
     def open_video(self):
-        filename = QFileDialog.getOpenFileName(self, "Open video", self.settings.last_dir(), "Video files (*.avi *.mp4)")
+        filename = QFileDialog.getOpenFileName(self, "Open video", self.settings.last_dir(), "Video files (*.avi *.mp4 *.mov)")
         if filename[0] != "":
             self.video_source_file = filename[0]
             self.player.setMedia(QUrl.fromUserInput(self.video_source_file))
