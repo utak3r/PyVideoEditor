@@ -10,10 +10,8 @@ from PyVideoEditor.video_tools import VideoPreset
 
 class Settings():
     """This class holds all the settings for the app."""
-    def __init__(self, org, appName):
-        self.settings_ = QSettings(org, appName)
-        self.organization_ = org
-        self.app_name_ = appName
+    def __init__(self):
+        self.settings_ = QSettings("PyVideoEditor.ini", QSettings.IniFormat)
 
         # settings
         self.ffmpeg_ = "ffmpeg.exe"

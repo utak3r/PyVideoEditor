@@ -18,7 +18,7 @@ class VideoEditorMainWindow(QMainWindow):
         self.runner = None
         self.settings_dlg = None
         self.timeline_marks = TimelineMarks()
-        self.settings = Settings("utak3r", "PyVideoEditor")
+        self.settings = Settings()
         self.settings.read_settings()
 
         self.video_source_file = ''
