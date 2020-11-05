@@ -55,6 +55,9 @@ class Settings():
         self.settings_.setValue("MainWindowGeometry", self.main_wnd_geometry())
         self.settings_.endGroup()
         self.settings_.beginGroup("Video presets")
+        # remove any existing entries
+        self.settings_.remove("")
+        # and fill it with actual values
         for preset in self.video_presets:
             self.settings_.setValue(preset.name, preset)
         self.settings_.endGroup()
