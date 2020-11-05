@@ -1,7 +1,9 @@
 *.mp4
+*.mov
 *.cmd
 *.code-workspace
 .vscode/
 __pycache__/
 build/
 dist/
+PyVideoEditor.ini

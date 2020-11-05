@@ -3,21 +3,21 @@
    Provides also a dialog for editing some of the settings.
 """
 
-from PySide2.QtCore import QSettings, QRect, QFile, QIODevice, Slot, QFileInfo
-from PySide2.QtWidgets import QDialog, QFileDialog
+from PySide2.QtCore import Qt, QSettings, QRect, QFile, QIODevice, Slot, QFileInfo
+from PySide2.QtWidgets import QDialog, QFileDialog, QTableWidget, QTableWidgetItem
 from PySide2.QtUiTools import QUiLoader
+from PyVideoEditor.video_tools import VideoPreset
 
 class Settings():
     """This class holds all the settings for the app."""
-    def __init__(self, org, appName):
-        self.settings_ = QSettings(org, appName)
-        self.organization_ = org
-        self.app_name_ = appName
+    def __init__(self):
+        self.settings_ = QSettings("PyVideoEditor.ini", QSettings.IniFormat)
 
         # settings
         self.ffmpeg_ = "ffmpeg.exe"
         self.lastdir_ = "."
         self.main_wnd_geometry_ = QRect(640, 250, 800, 500)
+        self.video_presets = []
 
     def read_settings(self):
         """Read settings from a storage and save them in internal variables for later use."""
@@ -27,6 +27,22 @@ class Settings():
         self.settings_.endGroup()
         self.settings_.beginGroup("Geometry")
         self.set_main_wnd_geometry(self.settings_.value("MainWindowGeometry"))
+        self.settings_.endGroup()
+        self.settings_.beginGroup("Video presets")
+        self.video_presets.clear()
+        entries = self.settings_.allKeys()
+        if len(entries) > 0:
+            for entry in entries:
+                preset = self.settings_.value(entry)
+                self.video_presets.append(preset)
+        else:
+            # default video presets:
+            preset = VideoPreset('H.264 AAC', '.mp4', '-c:v libx264 -preset medium -tune film -c:a aac')
+            self.video_presets.append(preset)
+            preset = VideoPreset('DNxHD 185Mbps PCM s24LE', '.mov', '-c:v dnxhd -b:v 185M -c:a pcm_s24le')
+            self.video_presets.append(preset)
+            preset = VideoPreset('ProRes YUV422', '.mov', '-c:v prores_ks -profile:v 3 -vendor ap10 -pix_fmt yuv422p10le')
+            self.video_presets.append(preset)
         self.settings_.endGroup()
 
     def write_settings(self):
@@ -38,6 +54,13 @@ class Settings():
         self.settings_.beginGroup("Geometry")
         self.settings_.setValue("MainWindowGeometry", self.main_wnd_geometry())
         self.settings_.endGroup()
+        self.settings_.beginGroup("Video presets")
+        # remove any existing entries
+        self.settings_.remove("")
+        # and fill it with actual values
+        for preset in self.video_presets:
+            self.settings_.setValue(preset.name, preset)
+        self.settings_.endGroup()
         self.settings_.sync()
 
     def ffmpeg(self):
@@ -46,11 +69,13 @@ class Settings():
 
     def set_ffmpeg(self, path):
         """Set FFmpeg path"""
-        self.ffmpeg_ = path
+        if type(path) is str:
+            self.ffmpeg_ = path
 
     def set_last_dir(self, directory):
         """Set last used directory for opening a video"""
-        self.lastdir_ = directory
+        if type(directory) is str:
+            self.lastdir_ = directory
 
     def last_dir(self):
         """Get last used directory for opening a video"""
@@ -58,7 +83,8 @@ class Settings():
 
     def set_main_wnd_geometry(self, geometry):
         """Save main window's position and size"""
-        self.main_wnd_geometry_ = geometry
+        if type(geometry) is QRect:
+            self.main_wnd_geometry_ = geometry
 
     def main_wnd_geometry(self):
         """Get main window's position and size"""
@@ -73,6 +99,9 @@ class SettingsDialog(QDialog):
         self.settings_ = settings
         self.Form.btnOk.clicked.connect(self.accept_settings)
         self.Form.btnFFmpegPath.clicked.connect(self.browse_for_ffmpeg_exec)
+        self.Form.presetsTable.horizontalHeader().setStretchLastSection(True)
+        self.Form.btnAddPreset.clicked.connect(self.presets_add)
+        self.Form.btnRemovePreset.clicked.connect(self.presets_remove_current)
         self.load_settings_values()
 
 
@@ -87,6 +116,19 @@ class SettingsDialog(QDialog):
     def load_settings_values(self):
         """Get values from settings and show them in dialog"""
         self.Form.txtFFmpegPath.setText(self.settings_.ffmpeg())
+        
+        #self.Form.presetsTable.cellChanged.disconnect()
+        presets = self.settings_.video_presets
+        if len(presets) > 0:
+            self.Form.presetsTable.setRowCount(len(presets))
+            i = 0
+            for video_preset in presets:
+                if type(video_preset) is VideoPreset:
+                    self.Form.presetsTable.setItem(i, 0, QTableWidgetItem(video_preset.name))
+                    self.Form.presetsTable.setItem(i, 1, QTableWidgetItem(video_preset.extension))
+                    self.Form.presetsTable.setItem(i, 2, QTableWidgetItem(video_preset.command_line))
+                i += 1
+            self.Form.presetsTable.cellChanged.connect(self.presets_cell_changed)
 
     @Slot()
     def accept_settings(self):
@@ -102,3 +144,27 @@ class SettingsDialog(QDialog):
             self.Form.txtFFmpegPath.setText(filename[0])
             self.settings_.set_ffmpeg(filename[0])
 
+    @Slot()
+    def presets_add(self):
+        """Add new empty pvideo preset."""
+        self.Form.presetsTable.insertRow(self.Form.presetsTable.rowCount())
+        self.settings_.video_presets.append(VideoPreset())
+
+    @Slot()
+    def presets_remove_current(self):
+        """Removes current preset."""
+        which = self.Form.presetsTable.currentRow()
+        if which > -1:
+            del self.settings_.video_presets[which]
+            self.Form.presetsTable.removeRow(which)
+
+    @Slot()
+    def presets_cell_changed(self, row, column):
+        """User changed entry in a presets table."""
+        if column == 0:
+            self.settings_.video_presets[row].name = self.Form.presetsTable.item(row, column).text()
+        elif column == 1:
+            self.settings_.video_presets[row].extension = self.Form.presetsTable.item(row, column).text()
+        elif column == 2:
+            self.settings_.video_presets[row].command_line = self.Form.presetsTable.item(row, column).text()
+        

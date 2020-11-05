@@ -78,3 +78,28 @@ class TimelineMarks():
             trimmed = True
         return trimmed
 
+class VideoPreset():
+    """ VideoPreset class stores a video preset.
+    Each preset contains its name, file extension and a ffmpeg command line.
+    """
+
+    def __init__(self, name = None, extension = None, command_line = None):
+        if name is not None:
+            self.name = name
+        else:
+            self.name = ""
+        if command_line is not None:
+            self.command_line = command_line
+        else:
+            self.command_line = ""
+        if extension is not None:
+            self.extension = extension
+        else:
+            self.extension = ""
+
+    def __repr__(self) -> str:
+        return self.name + ", " + self.extension + ", " + self.command_line
+
+    def get_user_data(self):
+        """ Return this reset as a UserData element, ready for inserting into a QComboBox list. """
+        return (self.name, self.extension, self.command_line)

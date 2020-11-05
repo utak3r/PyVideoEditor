@@ -8,7 +8,7 @@ from PySide2.QtMultimedia import QMediaPlayer
 from PySide2.QtMultimediaWidgets import QVideoWidget
 from PyVideoEditor.settings_tools import Settings, SettingsDialog
 from PyVideoEditor.process_tools import ProcessRunner
-from PyVideoEditor.video_tools import TimelineMarks
+from PyVideoEditor.video_tools import TimelineMarks, VideoPreset
 
 
 class VideoEditorMainWindow(QMainWindow):
@@ -18,6 +18,8 @@ class VideoEditorMainWindow(QMainWindow):
         self.runner = None
         self.settings_dlg = None
         self.timeline_marks = TimelineMarks()
+        self.settings = Settings()
+        self.settings.read_settings()
 
         self.video_source_file = ''
         videoWidget = QVideoWidget()
@@ -40,8 +42,6 @@ class VideoEditorMainWindow(QMainWindow):
         self.fill_convert_target_formats()
         self.centralWidget().btnConvert.clicked.connect(self.convert_button_clicked)
 
-        self.settings = Settings("utak3r", "PyVideoEditor")
-        self.settings.read_settings()
         self.setGeometry(self.settings.main_wnd_geometry())
         self.centralWidget().btnSettings.clicked.connect(self.open_settings)
 
@@ -59,7 +59,7 @@ class VideoEditorMainWindow(QMainWindow):
 
     @Slot()
     def open_video(self):
-        filename = QFileDialog.getOpenFileName(self, "Open video", self.settings.last_dir(), "Video files (*.avi *.mp4)")
+        filename = QFileDialog.getOpenFileName(self, "Open video", self.settings.last_dir(), "Video files (*.avi *.mp4 *.mov)")
         if filename[0] != "":
             self.video_source_file = filename[0]
             self.player.setMedia(QUrl.fromUserInput(self.video_source_file))
@@ -93,9 +93,9 @@ class VideoEditorMainWindow(QMainWindow):
 
     def fill_convert_target_formats(self):
         self.centralWidget().cbxTargetFormat.clear()
-        self.centralWidget().cbxTargetFormat.addItem('H.264 AAC', ('H.264 AAC', '.mp4', '-c:v libx264 -preset medium -tune film -c:a aac'))
-        self.centralWidget().cbxTargetFormat.addItem('DNxHD 185Mbps PCM s24LE', ('DNxHD 185Mbps PCM s24LE', '.mov', '-c:v dnxhd -b:v 185M -c:a pcm_s24le'))
-        self.centralWidget().cbxTargetFormat.addItem('ProRes YUV422', ('ProRes YUV422', '.mov', '-c:v prores_ks -profile:v 3 -vendor ap10 -pix_fmt yuv422p10le'))
+        for preset in self.settings.video_presets:
+            if type(preset) is VideoPreset:
+                self.centralWidget().cbxTargetFormat.addItem(preset.name, preset.get_user_data())
 
     @Slot()
     def convert_button_clicked(self):
@@ -122,6 +122,7 @@ class VideoEditorMainWindow(QMainWindow):
     def settings_closed(self):
         """ Called when settings dialog is closed. """
         self.settings.write_settings()
+        self.fill_convert_target_formats()
 
     @Slot()
     def set_mark_in(self):
