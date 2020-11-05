@@ -102,14 +102,16 @@ class VideoEditorMainWindow(QMainWindow):
         ffmpeg = self.settings.ffmpeg()
         if ffmpeg != "":
             codec = self.centralWidget().cbxTargetFormat.currentData()
-            if self.video_source_file != "" and codec[2] != "" and codec[1] != "":
-                duration_params = ""
-                if self.timeline_marks.is_trimmed():
-                    duration_params = ' -ss ' + self.timeline_marks.timecode_start() + ' -t ' + '{} '.format(math.floor(self.timeline_marks.duration() / 1000))
-                params = '-i ' + '"' + self.video_source_file + '" ' + duration_params + codec[2] + ' "' + self.video_source_file + '.converted' + codec[1] + '"'
-                command = '"' + ffmpeg + '" ' + params
-                self.runner = ProcessRunner()
-                self.runner.run_command(command)
+            out_filename = QFileDialog.getSaveFileName(self, "Save file as...", self.video_source_file + '.converted' + codec[1], "Video files (*.avi *.mp4 *.mov)")
+            if out_filename[0] != "":
+                if self.video_source_file != "" and codec[2] != "" and codec[1] != "":
+                    duration_params = ""
+                    if self.timeline_marks.is_trimmed():
+                        duration_params = ' -ss ' + self.timeline_marks.timecode_start() + ' -t ' + '{} '.format(math.floor(self.timeline_marks.duration() / 1000))
+                    params = '-i ' + '"' + self.video_source_file + '" -y ' + duration_params + codec[2] + ' "' + out_filename[0] + '"'
+                    command = '"' + ffmpeg + '" ' + params
+                    self.runner = ProcessRunner()
+                    self.runner.run_command(command)
 
     @Slot()
     def open_settings(self):
