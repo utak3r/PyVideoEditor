@@ -1,4 +1,5 @@
 *.mp4
+*.mov
 *.cmd
 *.code-workspace
 .vscode/
