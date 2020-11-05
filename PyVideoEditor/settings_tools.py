@@ -66,11 +66,13 @@ class Settings():
 
     def set_ffmpeg(self, path):
         """Set FFmpeg path"""
-        self.ffmpeg_ = path
+        if type(path) is str:
+            self.ffmpeg_ = path
 
     def set_last_dir(self, directory):
         """Set last used directory for opening a video"""
-        self.lastdir_ = directory
+        if type(directory) is str:
+            self.lastdir_ = directory
 
     def last_dir(self):
         """Get last used directory for opening a video"""
@@ -78,7 +80,8 @@ class Settings():
 
     def set_main_wnd_geometry(self, geometry):
         """Save main window's position and size"""
-        self.main_wnd_geometry_ = geometry
+        if type(geometry) is QRect:
+            self.main_wnd_geometry_ = geometry
 
     def main_wnd_geometry(self):
         """Get main window's position and size"""
